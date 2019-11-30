@@ -7,6 +7,8 @@
         <script src="https://unpkg.com/babel-standalone@6.15.0/babel.min.js"></script>
         <script src="https://tylermcginnis.com/goals-todos-api/index.js"></script>
         <script src="https://unpkg.com/redux-thunk@2.2.0/dist/redux-thunk.min.js"></script>
+        <script src="https://unpkg.com/react-redux@5.0.6/dist/react-redux.min.js"></script>
+
 
     </head>
     <body>
@@ -276,21 +278,22 @@
                 )
             }
 
+
             class Todos extends React.Component {
 
                 addItem = (event) => {
                     event.preventDefault();
-                    const { dispatch } = this.props.store;
+                    const { dispatch } = this.props;
                     dispatch(handleAddTodo(this.input.value, () => this.input.value = ''));
                 }
 
                 removeItem = (todo) => {
-                    const { dispatch } = this.props.store; 
+                    const { dispatch } = this.props; 
                     dispatch(handleDeleteTodo(todo))    
                 }
 
                 toggleItem = (id) => {
-                    const { dispatch } = this.props.store;
+                    const { dispatch } = this.props;
                     dispatch(handleToggleTodo(id));
                 }
 
@@ -315,16 +318,21 @@
                 }
             }
 
+            const ConnectedTodos = ReactRedux.connect((state) => ({
+                todos: state.todos
+            }))(Todos);
+           
+
             class Goals extends React.Component {
 
                 addItem = (event) => {
                     event.preventDefault();
-                    const { dispatch } = this.props.store;
+                    const { dispatch } = this.props;
                     dispatch(handleAddGoal(this.input.value, () => this.input.value = ''));
                 }
 
                 removeItem = (goal) => {
-                    const { dispatch } = this.props.store;
+                    const { dispatch } = this.props;
                     dispatch(handleDeleteGoal(goal));
                 }
 
@@ -348,52 +356,53 @@
                 }
             }
 
+            const ConnectedGoals = ReactRedux.connect((state) => ({
+                goals: state.goals
+            }))(Goals);
+            
+
             class App extends React.Component {
 
                 componentDidMount (){
-                    const { store } = this.props;
                     
-                    store.dispatch(handleInitialData());
-
-                    store.subscribe(() => {
-                        /*
-                        By default, when your component’s state or props change, 
-                        your component will re-render. If your render() method depends on some other data, 
-                        you can tell React that the component needs re-rendering by calling forceUpdate().*/
-                        this.forceUpdate();
-                    })
+                    const { dispatch } = this.props;
+                     
+                    dispatch(handleInitialData());
+                    
                 }
 
                 render() {
 
-                   
-
-                    const { store } = this.props;
                     //whenever the store changes we are going to get the portions of the state that we want
-                    const { todos, goals, loading } = store.getState(); 
 
-                    
-                    
                     return (
 
-
-
                         <div>
-                            {loading ?
-                                 <div>Loading...</div> :
+                            {this.props.loading ?
+                                 <div>Loading...</div> :        
                                     <div>
-                                        <Todos todos ={todos} store={this.props.store}/>
-                                        <Goals goals={goals} store={this.props.store}/>    
+                                       <ConnectedTodos />
+                                       <ConnectedGoals />
                                     </div>
-                            }    
-
+                            }       
                         </div>
                     )
                 }
             }
 
+            //In the first parenthesis we will pass any data that the component needs
+            //And in the second the component that's going to be rendered
+            const ConnectedApp = ReactRedux.connect((state) => ({
+                loading: state.loading
+            }))(App);
+
+            
+
+
             ReactDOM.render(
-                <App store={store}/>,
+                <ReactRedux.Provider store={store} >
+                    <ConnectedApp />
+                </ReactRedux.Provider>,
                 document.getElementById('app')
             )
 
